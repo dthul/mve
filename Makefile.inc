@@ -6,7 +6,7 @@ LINK.o = ${CXX} ${LDFLAGS}
 .DEFAULT_GOAL := ${TARGET}
 
 # Always compile programs and libs with multi-threading.
-CXXFLAGS += -pthread
+CXXFLAGS += -pthread -std=c++11
 
 # How to link example from example.o and other files:
 %: %.o

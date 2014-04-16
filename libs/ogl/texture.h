@@ -6,6 +6,8 @@
 #ifndef OGL_TEXTURE_HEADER
 #define OGL_TEXTURE_HEADER
 
+#include <memory>
+
 #include "util/ref_ptr.h"
 #include "mve/image.h"
 #include "ogl/defines.h"
@@ -24,15 +26,22 @@ public:
 
 private:
     GLuint tex_id;
+    GLint level, int_format, border, format, type;
+    GLsizei w, h;
+    std::shared_ptr<void> texture_unaligned;
+    void* data = NULL;
+    std::size_t alignment = 1;
 
 public:
     /** Creates a new texture object without image data. */
     Texture (void);
     /** Creates a new texture object from an MVE image. */
-    Texture (mve::ByteImage::ConstPtr image);
+    Texture (mve::ByteImage::ConstPtr image, std::size_t alignment = 4);
 
     /** Creates a smart pointered texture object. */
     static Ptr create (void);
+
+    void init(mve::ByteImage::ConstPtr image);
 
     /** Destroys the texture object, releasing OpenGL resources. */
     ~Texture (void);
@@ -41,7 +50,7 @@ public:
     void bind (void);
 
     /** Uploads the given image to OpenGL. */
-    void upload (mve::ByteImage::ConstPtr image);
+    void upload ();
 };
 
 /* ---------------------------------------------------------------- */
@@ -53,10 +62,12 @@ Texture::Texture (void)
 }
 
 inline
-Texture::Texture (mve::ByteImage::ConstPtr image)
+Texture::Texture (mve::ByteImage::ConstPtr image, std::size_t alignment)
 {
+    this->alignment = alignment;
     glGenTextures(1, &this->tex_id);
-    this->upload(image);
+    this->init(image);
+    this->upload();
 }
 
 inline Texture::Ptr
