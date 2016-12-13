@@ -44,6 +44,7 @@ private:
     QCheckBox* render_lighting_cb;
     QCheckBox* render_wireframe_cb;
     QCheckBox* render_color_cb;
+    QCheckBox* render_matcap_cb;
     QMeshList* mesh_list;
 };
 

@@ -49,5 +49,7 @@
         <file>shaders/wireframe_330.vert</file>
         <file>shaders/overlay_330.frag</file>
         <file>shaders/overlay_330.vert</file>
+        <file>shaders/matcap_330.frag</file>
+        <file>shaders/matcap_330.vert</file>
     </qresource>
 </RCC>

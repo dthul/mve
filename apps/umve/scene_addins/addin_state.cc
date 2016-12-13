@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "mve/image_io.h"
 #include "util/file_system.h"
 #include "util/exception.h"
 #include "ogl/render_tools.h"
@@ -93,6 +94,8 @@ AddinState::load_shaders (void)
         this->texture_shader = ogl::ShaderProgram::create();
     if (!this->overlay_shader)
         this->overlay_shader = ogl::ShaderProgram::create();
+    if (!this->matcap_shader)
+        this->matcap_shader = ogl::ShaderProgram::create();
 
     /* Setup search paths for shader files. */
     std::string home_dir = util::fs::get_home_dir();
@@ -107,6 +110,7 @@ AddinState::load_shaders (void)
     bool found_wireframe = false;
     bool found_texture = false;
     bool found_overlay = false;
+    bool found_matcap = false;
     for (std::size_t i = 0; i < shader_paths.size(); ++i)
     {
         try
@@ -123,6 +127,9 @@ AddinState::load_shaders (void)
             if (!found_overlay)
                 found_overlay = this->overlay_shader->try_load_all
                     (shader_paths[i] + "overlay_330");
+            if (!found_matcap)
+                found_matcap = this->matcap_shader->try_load_all
+                    (shader_paths[i] + "matcap_330");
         }
         catch (util::Exception& e)
         {
@@ -160,6 +167,18 @@ AddinState::load_shaders (void)
         load_shaders_from_resources(this->overlay_shader,
             ":/shaders/overlay_330");
     }
+    if (!found_matcap)
+    {
+        std::cout << "Using built-in matcap shader." << std::endl;
+        load_shaders_from_resources(this->matcap_shader,
+            ":/shaders/matcap_330");
+    }
+
+    this->matcap_texture = ogl::Texture::create();
+    // TODO: load all matcaps into ByteImages
+    std::cout << binary_dir + "/matcap.png" << std::endl;
+    mve::ByteImage::Ptr matcap_image = mve::image::load_file(binary_dir + "/shaders/matcap.png");
+    this->matcap_texture->upload(matcap_image);
 }
 
 void
@@ -182,6 +201,11 @@ AddinState::send_uniform (ogl::Camera const& cam)
 
     /* Setup overlay shader. */
     this->overlay_shader->bind();
+
+    /* Setup matcap shader. */
+    this->matcap_shader->bind();
+    this->matcap_shader->send_uniform("viewmat", cam.view);
+    this->matcap_shader->send_uniform("projmat", cam.proj);
 }
 
 void

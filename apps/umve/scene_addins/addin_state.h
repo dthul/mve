@@ -28,6 +28,8 @@ public:
     ogl::ShaderProgram::Ptr wireframe_shader;
     ogl::ShaderProgram::Ptr texture_shader;
     ogl::ShaderProgram::Ptr overlay_shader;
+    ogl::ShaderProgram::Ptr matcap_shader;
+    ogl::Texture::Ptr matcap_texture;
     mve::Scene::Ptr scene;
     mve::View::Ptr view;
 

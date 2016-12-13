@@ -27,6 +27,7 @@ AddinMeshesRenderer::AddinMeshesRenderer (void)
     this->render_lighting_cb = new QCheckBox("Mesh lighting");
     this->render_wireframe_cb = new QCheckBox("Render wireframe");
     this->render_color_cb = new QCheckBox("Render mesh color");
+    this->render_matcap_cb = new QCheckBox("Matcap shading");
     this->mesh_list = new QMeshList();
 
     this->render_lighting_cb->setChecked(true);
@@ -37,6 +38,7 @@ AddinMeshesRenderer::AddinMeshesRenderer (void)
     this->render_meshes_box->addWidget(this->render_lighting_cb);
     this->render_meshes_box->addWidget(this->render_wireframe_cb);
     this->render_meshes_box->addWidget(this->render_color_cb);
+    this->render_meshes_box->addWidget(this->render_matcap_cb);
     this->render_meshes_box->addSpacing(5);
     this->render_meshes_box->addWidget(this->mesh_list, 1);
 
@@ -190,11 +192,14 @@ AddinMeshesRenderer::paint_impl (void)
         }
 
         /* Determine shader to use:
+         * - use matcap shader if the user selected it
          * - use texture shader if a texture is available
          * - use wireframe shader for points without normals
          * - use surface shader otherwise. */
         ogl::ShaderProgram::Ptr mesh_shader;
-        if (mr.texture != nullptr)
+        if (this->render_matcap_cb->isChecked())
+            mesh_shader = this->state->matcap_shader;
+        else if (mr.texture != nullptr)
             mesh_shader = this->state->texture_shader;
         else if (!mr.mesh->has_vertex_normals())
             mesh_shader = this->state->wireframe_shader;
@@ -223,7 +228,12 @@ AddinMeshesRenderer::paint_impl (void)
             glPolygonOffset(1.0f, -1.0f);
             glEnable(GL_POLYGON_OFFSET_FILL);
 
-            if (mr.texture != nullptr)
+            if (this->render_matcap_cb->isChecked())
+            {
+                this->state->matcap_texture->bind();
+                
+            }
+            else if (mr.texture != nullptr)
             {
                 mr.texture->bind();
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
