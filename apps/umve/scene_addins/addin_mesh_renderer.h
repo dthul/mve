@@ -14,6 +14,7 @@
 
 #include <QWidget>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QBoxLayout>
 
 #include "mve/mesh.h"
@@ -35,9 +36,13 @@ public:
         ogl::Texture::Ptr texture = nullptr);
 
     void load_mesh (std::string const& filename);
+    virtual void set_state (AddinState* state);
 
 protected:
     void paint_impl (void);
+
+protected slots:
+    void matcap_cb_changed (void);
 
 private:
     QVBoxLayout* render_meshes_box;
@@ -45,6 +50,7 @@ private:
     QCheckBox* render_wireframe_cb;
     QCheckBox* render_color_cb;
     QCheckBox* render_matcap_cb;
+    QComboBox* render_matcap_selector;
     QMeshList* mesh_list;
 };
 

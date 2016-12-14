@@ -10,6 +10,8 @@
 #ifndef UMVE_ADDIN_STATE_HEADER
 #define UMVE_ADDIN_STATE_HEADER
 
+#include <vector>
+
 #include "mve/scene.h"
 #include "mve/view.h"
 #include "mve/image.h"
@@ -30,6 +32,8 @@ public:
     ogl::ShaderProgram::Ptr overlay_shader;
     ogl::ShaderProgram::Ptr matcap_shader;
     ogl::Texture::Ptr matcap_texture;
+    int uploaded_matcap_image;
+    std::vector<std::pair<mve::ByteImage::Ptr, std::string>> matcap_images;
     mve::Scene::Ptr scene;
     mve::View::Ptr view;
 

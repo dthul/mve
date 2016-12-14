@@ -22,23 +22,60 @@
 #include "guihelpers.h"
 #include "scene_addins/addin_mesh_renderer.h"
 
+void AddinMeshesRenderer::set_state(AddinState* state) {
+    AddinBase::set_state(state);
+    if (this->state->matcap_images.size() == 0)
+    {
+        this->render_matcap_selector->addItem(QString("No matcap images found"));
+        this->render_matcap_selector->setEnabled(false);
+        this->render_matcap_cb->setEnabled(false);
+        return;
+    }
+    for (auto image_name: this->state->matcap_images) {
+        QIcon ico(get_pixmap_from_image(image_name.first));
+        this->render_matcap_selector->addItem(ico, QString(image_name.second.c_str()));
+    }
+}
+
+void AddinMeshesRenderer::matcap_cb_changed (void)
+{
+    if (this->render_matcap_cb->isChecked())
+    {
+        this->render_lighting_cb->setEnabled(false);
+        this->render_color_cb->setEnabled(false);
+        this->render_matcap_selector->setEnabled(true);
+    }
+    else
+    {
+        this->render_lighting_cb->setEnabled(true);
+        this->render_color_cb->setEnabled(true);
+        this->render_matcap_selector->setEnabled(false);
+    }
+}
+
 AddinMeshesRenderer::AddinMeshesRenderer (void)
 {
     this->render_lighting_cb = new QCheckBox("Mesh lighting");
     this->render_wireframe_cb = new QCheckBox("Render wireframe");
     this->render_color_cb = new QCheckBox("Render mesh color");
     this->render_matcap_cb = new QCheckBox("Matcap shading");
+    this->render_matcap_selector = new QComboBox();
+    this->render_matcap_selector->setIconSize(this->render_matcap_selector->iconSize() * 4);
+    this->render_matcap_selector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     this->mesh_list = new QMeshList();
 
     this->render_lighting_cb->setChecked(true);
     this->render_color_cb->setChecked(true);
 
+    this->matcap_cb_changed();
+
     this->render_meshes_box = new QVBoxLayout();
     this->render_meshes_box->setSpacing(0);
     this->render_meshes_box->addWidget(this->render_lighting_cb);
-    this->render_meshes_box->addWidget(this->render_wireframe_cb);
     this->render_meshes_box->addWidget(this->render_color_cb);
+    this->render_meshes_box->addWidget(this->render_wireframe_cb);
     this->render_meshes_box->addWidget(this->render_matcap_cb);
+    this->render_meshes_box->addWidget(this->render_matcap_selector);
     this->render_meshes_box->addSpacing(5);
     this->render_meshes_box->addWidget(this->mesh_list, 1);
 
@@ -48,7 +85,13 @@ AddinMeshesRenderer::AddinMeshesRenderer (void)
         this, SLOT(repaint()));
     this->connect(this->render_color_cb, SIGNAL(clicked()),
         this, SLOT(repaint()));
+    this->connect(this->render_matcap_cb, SIGNAL(clicked()),
+        this, SLOT(repaint()));
+    this->connect(this->render_matcap_cb, SIGNAL(clicked()),
+        this, SLOT(matcap_cb_changed()));
     this->connect(this->mesh_list, SIGNAL(signal_redraw()),
+        this, SLOT(repaint()));
+    this->connect(this->render_matcap_selector, SIGNAL(activated(int)),
         this, SLOT(repaint()));
 }
 
@@ -231,6 +274,11 @@ AddinMeshesRenderer::paint_impl (void)
             if (this->render_matcap_cb->isChecked())
             {
                 this->state->matcap_texture->bind();
+                const int index = this->render_matcap_selector->currentIndex();
+                if (index != this->state->uploaded_matcap_image && index >= 0 && index < this->state->matcap_images.size()) {
+                    this->state->matcap_texture->upload(this->state->matcap_images[index].first);
+                    this->state->uploaded_matcap_image = index;
+                }
                 
             }
             else if (mr.texture != nullptr)

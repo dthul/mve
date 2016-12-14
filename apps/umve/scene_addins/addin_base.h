@@ -32,7 +32,7 @@ public:
     AddinBase (void);
     ~AddinBase (void);
 
-    void set_state (AddinState* state);
+    virtual void set_state (AddinState* state);
     virtual QWidget* get_sidebar_widget (void);
 
     /* Empty base class re-implementations. */

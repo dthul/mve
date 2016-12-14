@@ -175,10 +175,26 @@ AddinState::load_shaders (void)
     }
 
     this->matcap_texture = ogl::Texture::create();
-    // TODO: load all matcaps into ByteImages
-    std::cout << binary_dir + "/matcap.png" << std::endl;
-    mve::ByteImage::Ptr matcap_image = mve::image::load_file(binary_dir + "/shaders/matcap.png");
-    this->matcap_texture->upload(matcap_image);
+
+    // Load matcap images
+    util::fs::Directory dir;
+    dir.scan(binary_dir + "/shaders/matcaps");
+    for (std::size_t i = 0; i < dir.size(); ++i)
+    {
+        std::string ext4 = util::string::right(dir[i].name, 4);
+        if (ext4 != ".png" && ext4 != ".jpg")
+            continue;
+        mve::ByteImage::Ptr matcap_image = mve::image::load_file(dir[i].get_absolute_name());
+        this->matcap_images.emplace_back(matcap_image, dir[i].name);
+    }
+    if (this->matcap_images.size() > 0) {
+        this->matcap_texture->upload(this->matcap_images[0].first);
+        this->uploaded_matcap_image = 0;
+    }
+    else
+    {
+        this->uploaded_matcap_image = -1;
+    }
 }
 
 void
